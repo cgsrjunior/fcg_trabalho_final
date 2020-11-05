@@ -199,8 +199,10 @@ float g_TorsoPositionY = 0.0f;
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
 
-//Variavel que controla o tipo de camera usada
+//Variavel que controla o tipo de camera usada e variavel que controla o set da position_camera
 bool g_UseFreeCamera = false;
+//Set free camera tera set por numeros
+int g_SetFreeCamera = 0;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
@@ -365,22 +367,33 @@ int main(int argc, char* argv[])
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+        //glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
         glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector; // Vetor "view", sentido para onde a câmera está virada
         glm::vec4 camera_up_vector; // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
 
+        //Na primeira passada o programa deve entrar nas definicoes de fixed camera
         if(g_UseFreeCamera == FALSE)
         {
+            //Ajusta o postion c para a fixed camera
+            camera_position_c  = glm::vec4(x,y,z,1.0f);
             //Seta o view vector e o camera vector para os valores que serao usados
             camera_view_vector = camera_lookat_l - camera_position_c;
             camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f);
         }
 
+        //Apos a primeira passada, ao apertarmos F, o programa deve fazer uma troca para free camera
         if(g_UseFreeCamera == TRUE)
         {
-            printf("Enter the free camera \n");
+            //printf("Enter the free camera \n");
+            //Ajusta o position c para free camera
+            if(g_SetFreeCamera == 1)
+            {
+                camera_position_c=glm::vec4(0.0f,0.0f,-5.0f,1.0f);
+                g_SetFreeCamera++;
+            }
+
             //Recebe as coordenadas da camera livre
             camera_view_vector = glm::vec4(x,y,z,0.0f);
             //Calculo dos vetores w e u para usarmos para computar a free camera
@@ -1242,6 +1255,24 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
          move_right=1;
     }
 
+    //Quando o botao parar de ser pressionado
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+    {
+        move_up=0;
+    }
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE)
+    {
+        move_down=0;
+    }
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE)
+    {
+        move_left=0;
+    }
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE)
+    {
+        move_right=0;
+    }
+
 
     if (key == GLFW_KEY_X && action == GLFW_PRESS)
     {
@@ -1274,6 +1305,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
         g_UseFreeCamera = !g_UseFreeCamera;
+        g_SetFreeCamera++;
+
+        if(g_SetFreeCamera > 2)
+        {
+            g_SetFreeCamera = 0;
+        }
     }
 
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
