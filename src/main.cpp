@@ -380,9 +380,9 @@ int main(int argc, char* argv[])
 
         if(g_UseFreeCamera == TRUE)
         {
-
+            printf("Enter the free camera \n");
             //Recebe as coordenadas da camera livre
-            camera_view_vector = glm::vec4(-x,-y,-z,0.0f);
+            camera_view_vector = glm::vec4(x,y,z,0.0f);
             //Calculo dos vetores w e u para usarmos para computar a free camera
             w = vector_w(camera_view_vector,camera_up_vector);
             u = vector_u(camera_view_vector,camera_up_vector);
