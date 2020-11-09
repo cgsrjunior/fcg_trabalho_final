@@ -19,8 +19,8 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
-#define SPHERE 0
-#define BUNNY  1
+#define POOLTABLE 0
+#define ALIEN
 #define PLANE  2
 uniform int object_id;
 
@@ -68,7 +68,7 @@ void main()
     float U = 0.0;
     float V = 0.0;
 
-    if ( object_id == SPHERE )
+    if ( object_id == POOLTABLE )
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -101,7 +101,7 @@ void main()
         U = (theta+M_PI)/(2*M_PI);
         V = (phi+M_PI_2)/M_PI;
     }
-    else if ( object_id == BUNNY )
+    else if ( object_id == ALIEN )
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
