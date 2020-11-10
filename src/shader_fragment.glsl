@@ -20,7 +20,7 @@ uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
 #define POOLTABLE 0
-#define ALIEN
+#define ALIEN   1
 #define PLANE  2
 uniform int object_id;
 
