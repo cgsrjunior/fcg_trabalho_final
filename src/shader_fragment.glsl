@@ -21,7 +21,7 @@ uniform mat4 projection;
 // Identificador que define qual objeto está sendo desenhado no momento
 #define POOLTABLE 0
 #define ALIEN   1
-#define PLANE  2
+#define SPHERE  2
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -29,9 +29,17 @@ uniform vec4 bbox_min;
 uniform vec4 bbox_max;
 
 // Variáveis para acesso das imagens de textura
+//Texturas da mesa de sinuca
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
+//Texturas do alien
 uniform sampler2D TextureImage2;
+uniform sampler2D TextureImage3;
+uniform sampler2D TextureImage4;
+uniform sampler2D TextureImage5;
+uniform sampler2D TextureImage6;
+uniform sampler2D TextureImage7;
+uniform sampler2D TextureImage8;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -64,11 +72,14 @@ void main()
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
+    // Vetor que define o sentido da reflexão especular ideal.
+    vec4 r = -l+(2*n)*dot(n,l);
+
     // Coordenadas de textura U e V
     float U = 0.0;
     float V = 0.0;
 
-    if ( object_id == POOLTABLE )
+    if ( object_id == SPHERE )
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -101,7 +112,7 @@ void main()
         U = (theta+M_PI)/(2*M_PI);
         V = (phi+M_PI_2)/M_PI;
     }
-    else if ( object_id == ALIEN )
+    else if ( object_id == ALIEN)
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
@@ -124,7 +135,7 @@ void main()
         U = (position_model.x - minx)/(maxx-minx);
         V = (position_model.y - miny)/(maxy-miny);
     }
-    else if ( object_id == PLANE )
+    else if ( object_id == POOLTABLE )
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
         U = texcoords.x;
@@ -138,6 +149,9 @@ void main()
 
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
+
+    // Termo para iluminacao de Phong
+    float phong_specular_term  = pow(float(max(0.0f,dot(r,v))),q);
 
     color = (Kd0 * (lambert + 0.01)) + (Kd1 * (1-(lambert + 0.6)+ 0.01));
 

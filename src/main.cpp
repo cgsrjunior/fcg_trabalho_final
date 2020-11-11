@@ -294,9 +294,20 @@ int main(int argc, char* argv[])
     //
     LoadShadersFromFiles();
 
-    // Carregamos duas imagens para serem utilizadas como textura
+    // Carregamos imagens para serem utilizadas como textura
+    //Texturas da mesa de sinuca
     LoadTextureImage("../../data/Pool Table Felt.jpg");      // TextureImage0
     LoadTextureImage("../../data/Mahogany.jpg"); // TextureImage1
+    //Texturas do alien
+    LoadTextureImage("../../data/Alien_01_D.png"); //TextureImage2
+    LoadTextureImage("../../data/Alien_01_N.png"); //TextureImage3
+    LoadTextureImage("../../data/Alien_01_S.png"); //TextureImage4
+    LoadTextureImage("../../data/Alien_02_D.png"); //TextureImage5
+    LoadTextureImage("../../data/Alien_02_N.png"); //TextureImage6
+    LoadTextureImage("../../data/Alien_02_S.png"); //TextureImage7
+    //Texturas das bolinhas
+    LoadTextureImage("../../data/blackball.png");   //TextureImage8
+
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel pooltablemodel("../../data/sinuca.obj");
@@ -307,9 +318,9 @@ int main(int argc, char* argv[])
     ComputeNormals(&alienmodel);
     BuildTrianglesAndAddToVirtualScene(&alienmodel);
 
-    ObjModel planemodel("../../data/plane.obj");
-    ComputeNormals(&planemodel);
-    BuildTrianglesAndAddToVirtualScene(&planemodel);
+    ObjModel spheremodel("../../data/sphere.obj");
+    ComputeNormals(&spheremodel);
+    BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
     if ( argc > 1 )
     {
@@ -448,7 +459,7 @@ int main(int argc, char* argv[])
 
         #define POOLTABLE 0
         #define ALIEN  1
-        #define PLANE  2
+        #define SPHERE  2
 
         // Desenhamos o modelo da mesa de sinuca
         model = Matrix_Translate(0.0f,0.0f,0.0f)
@@ -466,13 +477,20 @@ int main(int argc, char* argv[])
         DrawVirtualObject("alien");
 
 
-        // Desenhamos o plano do chão
-        /*
-        model = Matrix_Translate(0.0f,-1.1f,0.0f);
+        // Desenhamos uma bolinha na mesa de sinuca (bola branca)
+        model = Matrix_Translate(0.0f,0.85f,0.0f)
+                * Matrix_Scale(0.07f,0.07f,0.07f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
-        DrawVirtualObject("plane");
-        */
+        glUniform1i(object_id_uniform, SPHERE);
+        DrawVirtualObject("sphere");
+
+        // Desenhamos uma bolinha na mesa de sinuca (bola preta)
+        model = Matrix_Translate(1.0f,0.85f,0.0f)
+                * Matrix_Scale(0.07f,0.07f,0.07f);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, SPHERE);
+        DrawVirtualObject("sphere");
+
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
