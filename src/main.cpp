@@ -163,7 +163,7 @@ int move_left=0;
 int move_right=0;
 
 //Constante de aceleracao para movimento com WASD
-float speed_up=0.05;
+float speed_up=0.01;
 
 
 // Razão de proporção da janela (largura/altura). Veja função FramebufferSizeCallback().
@@ -460,6 +460,7 @@ int main(int argc, char* argv[])
         #define POOLTABLE 0
         #define ALIEN  1
         #define SPHERE  2
+        #define BAIANINHO 3
 
         // Desenhamos o modelo da mesa de sinuca
         model = Matrix_Translate(0.0f,0.0f,0.0f)

@@ -22,6 +22,7 @@ uniform mat4 projection;
 #define POOLTABLE 0
 #define ALIEN   1
 #define SPHERE  2
+#define BAIANINHO 3
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -39,6 +40,7 @@ uniform sampler2D TextureImage4;
 uniform sampler2D TextureImage5;
 uniform sampler2D TextureImage6;
 uniform sampler2D TextureImage7;
+//Textura para uma bola 8
 uniform sampler2D TextureImage8;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
@@ -74,6 +76,13 @@ void main()
 
     // Vetor que define o sentido da reflexão especular ideal.
     vec4 r = -l+(2*n)*dot(n,l);
+
+     // Propriedades espectrais da superfície
+    vec3 Kd; // Refletância difusa
+    vec3 Ks; // Refletância especular
+    vec3 Ka; // Refletância ambiente
+    //Expoente para o modelo de Phong
+    float q;
 
     // Coordenadas de textura U e V
     float U = 0.0;
@@ -111,8 +120,17 @@ void main()
 
         U = (theta+M_PI)/(2*M_PI);
         V = (phi+M_PI_2)/M_PI;
+
+        // Propriedades espectrais da superfície
+        Kd = vec3(0.02,0.03,0.04); // Refletância difusa
+        Ks = vec3(0.6,0.5,0.5); // Refletância especular
+        Ka = vec3(0.3,0.2,0.2); // Refletância ambiente
+
+        q = 10.0;    //Expoente para o modelo de Phong
+
+
     }
-    else if ( object_id == ALIEN)
+    else if ( object_id == ALIEN )
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
@@ -134,26 +152,128 @@ void main()
 
         U = (position_model.x - minx)/(maxx-minx);
         V = (position_model.y - miny)/(maxy-miny);
+
+        // Propriedades espectrais da superfície
+        Kd = vec3(0.01,0.02,0.03); // Refletância difusa
+        Ks = vec3(0.4,0.3,0.3); // Refletância especular
+        Ka = vec3(0.2,0.1,0.1); // Refletância ambiente
+
+        q = 20.0;    //Expoente para o modelo de Phong
     }
+
     else if ( object_id == POOLTABLE )
     {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
+        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
+        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
+        // o slides 99-104 do documento Aula_20_Mapeamento_de_Texturas.pdf,
+        // e também use as variáveis min*/max* definidas abaixo para normalizar
+        // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
+        // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
+        // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
+        // Veja também a Questão 4 do Questionário 4 no Moodle.
+
+        float minx = bbox_min.x;
+        float maxx = bbox_max.x;
+
+        float miny = bbox_min.y;
+        float maxy = bbox_max.y;
+
+        float minz = bbox_min.z;
+        float maxz = bbox_max.z;
+
+        U = (position_model.x - minx)/(maxx-minx);
+        V = (position_model.y - miny)/(maxy-miny);
+
+        // Propriedades espectrais da superfície
+        Kd = vec3(0.01,0.02,0.03); // Refletância difusa
+        Ks = vec3(0.4,0.3,0.3); // Refletância especular
+        Ka = vec3(0.2,0.1,0.1); // Refletância ambiente
+
+        q = 20.0;    //Expoente para o modelo de Phong
+    }
+
+    //Aqui vamos setar as paradas do baianinho de maua
+
+    else if ( object_id == BAIANINHO )
+    {
+        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
+        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
+        // o slides 99-104 do documento Aula_20_Mapeamento_de_Texturas.pdf,
+        // e também use as variáveis min*/max* definidas abaixo para normalizar
+        // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
+        // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
+        // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
+        // Veja também a Questão 4 do Questionário 4 no Moodle.
+
+        float minx = bbox_min.x;
+        float maxx = bbox_max.x;
+
+        float miny = bbox_min.y;
+        float maxy = bbox_max.y;
+
+        float minz = bbox_min.z;
+        float maxz = bbox_max.z;
+
+        U = (position_model.x - minx)/(maxx-minx);
+        V = (position_model.y - miny)/(maxy-miny);
+
+        // Propriedades espectrais da superfície
+        Ka = vec3(0.2,0.1,0.1); // Refletância ambiente
     }
 
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
+    // Textura da mesa de sinuca
     vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-
     vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
+    //Texturas do alien
+    vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
+    vec3 Kd3 = texture(TextureImage3, vec2(U,V)).rgb;
+    vec3 Kd4 = texture(TextureImage4, vec2(U,V)).rgb;
+    vec3 Kd5 = texture(TextureImage5, vec2(U,V)).rgb;
+    vec3 Kd6 = texture(TextureImage6, vec2(U,V)).rgb;
+    vec3 Kd7 = texture(TextureImage7, vec2(U,V)).rgb;
+    //Textura para uma bola 8
+    vec3 Kd8 = texture(TextureImage8, vec2(U,V)).rgb;
 
-    // Equação de Iluminação
+    // Espectro da fonte de iluminação
+    vec3 light_spectrum = vec3(1.0,1.0,1.0);
+
+    // Espectro da luz ambiente
+    vec3 ambient_light_spectrum = vec3(0.6,0.6,0.6);
+
+    // Equação de Iluminação de Lambert
     float lambert = max(0,dot(n,l));
 
     // Termo para iluminacao de Phong
-    float phong_specular_term  = pow(float(max(0.0f,dot(r,v))),q);
+    float phong_specular_term = pow(float(max(0.0f,dot(r,v))),q);
 
-    color = (Kd0 * (lambert + 0.01)) + (Kd1 * (1-(lambert + 0.6)+ 0.01));
+    //Condicionais pra aplicar as texturas adequadas a cada modelo bem como seu tipo de iluminacao
+    //Modelo de Phong
+    if( object_id == POOLTABLE)
+    {
+        //Solucao utilizada no lab4
+        color = Kd8 * light_spectrum * lambert //Termo difuso (Lambert)
+            + Ka * ambient_light_spectrum   //Fator Ambiente
+            + Ks * light_spectrum * phong_specular_term;    //
+    }
+
+    //Modelo difuso sem ambiente
+    else if ( object_id == ALIEN )
+    {
+        color = Kd2 * kd3 * light_spectrum * lambert;
+    }
+
+
+    else if ( object_id == SPHERE)
+    {
+
+    }
+
+
+
+    //color = (Kd0 * (lambert + 0.01)) + (Kd1 * (1-(lambert + 0.6)+ 0.01));
+
+
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
