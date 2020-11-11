@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/Mahogany.jpg"); // TextureImage1
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel pooltablemodel("../../data/pool_table.obj");
+    ObjModel pooltablemodel("../../data/sinuca.obj");
     ComputeNormals(&pooltablemodel);
     BuildTrianglesAndAddToVirtualScene(&pooltablemodel);
 
@@ -450,21 +450,20 @@ int main(int argc, char* argv[])
         #define ALIEN  1
         #define PLANE  2
 
-        // Desenhamos o modelo da esfera
+        // Desenhamos o modelo da mesa de sinuca
         model = Matrix_Translate(0.0f,0.0f,0.0f)
                 * Matrix_Scale(0.03f,0.03f,0.03f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, POOLTABLE);
-        DrawVirtualObject("pooltable");
+        DrawVirtualObject("sinuca");
 
-        // Desenhamos o modelo do coelho
-        /*
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
-              * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
+        // Desenhamos o modelo do alien
+        model = Matrix_Translate(3.0f,0.75f,0.0f)
+              * Matrix_Scale(0.01f,0.01f,0.01f);
+              //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, ALIEN);
         DrawVirtualObject("alien");
-        */
 
 
         // Desenhamos o plano do chão

@@ -1,7 +1,4 @@
-# Blender v2.90.1 OBJ File: 'sinuca.blend'
-# www.blender.org
-mtllib sinuca.mtl
-o pool_table
+g sinuca
 v -35.538616 28.015234 -29.914530
 v 65.885880 28.015251 -29.914530
 v 61.590244 15.028483 -29.914530
