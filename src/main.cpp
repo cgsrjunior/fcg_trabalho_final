@@ -459,8 +459,9 @@ int main(int argc, char* argv[])
 
         #define POOLTABLE 0
         #define ALIEN  1
-        #define SPHERE  2
-        #define BAIANINHO 3
+        #define SPHERE_WHITE  2
+        #define SPHERE_BLACK 3
+        #define BAIANINHO 4
 
         // Desenhamos o modelo da mesa de sinuca
         model = Matrix_Translate(0.0f,0.0f,0.0f)
@@ -482,14 +483,14 @@ int main(int argc, char* argv[])
         model = Matrix_Translate(0.0f,0.85f,0.0f)
                 * Matrix_Scale(0.07f,0.07f,0.07f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
+        glUniform1i(object_id_uniform, SPHERE_WHITE);
         DrawVirtualObject("sphere");
 
         // Desenhamos uma bolinha na mesa de sinuca (bola preta)
         model = Matrix_Translate(1.0f,0.85f,0.0f)
                 * Matrix_Scale(0.07f,0.07f,0.07f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
+        glUniform1i(object_id_uniform, SPHERE_BLACK);
         DrawVirtualObject("sphere");
 
 

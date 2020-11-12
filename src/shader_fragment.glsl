@@ -21,8 +21,9 @@ uniform mat4 projection;
 // Identificador que define qual objeto está sendo desenhado no momento
 #define POOLTABLE 0
 #define ALIEN   1
-#define SPHERE  2
-#define BAIANINHO 3
+#define SPHERE_WHITE 2
+#define SPHERE_BLACK 3
+#define BAIANINHO 4
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -88,7 +89,7 @@ void main()
     float U = 0.0;
     float V = 0.0;
 
-    if ( object_id == SPHERE )
+    if ( object_id == SPHERE_WHITE || object_id == SPHERE_BLACK)
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -193,13 +194,13 @@ void main()
     }
 
     //Aqui vamos setar as paradas do baianinho de maua
-
+    /*
     else if ( object_id == BAIANINHO )
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
         // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
         // o slides 99-104 do documento Aula_20_Mapeamento_de_Texturas.pdf,
-        // e também use as variáveis min*/max* definidas abaixo para normalizar
+        // e também use as variáveis min/max definidas abaixo para normalizar
         // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
         // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
         // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
@@ -220,6 +221,7 @@ void main()
         // Propriedades espectrais da superfície
         Ka = vec3(0.2,0.1,0.1); // Refletância ambiente
     }
+    */
 
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
     // Textura da mesa de sinuca
@@ -248,26 +250,45 @@ void main()
     float phong_specular_term = pow(float(max(0.0f,dot(r,v))),q);
 
     //Condicionais pra aplicar as texturas adequadas a cada modelo bem como seu tipo de iluminacao
-    //Modelo de Phong
+    //Modelo difuso difuso com iluminacao ambiente
     if( object_id == POOLTABLE)
+    {
+        color = Kd0 * light_spectrum * lambert
+            + Kd1 * light_spectrum * lambert
+              + Ka * ambient_light_spectrum;
+
+    }
+
+    //Modelo difuso sem iluminacao ambiente
+    if ( object_id == ALIEN )
+    {
+        color = Kd2 * light_spectrum * lambert + Kd3 * light_spectrum * lambert
+                + Kd4 * light_spectrum * lambert
+                + Kd5 * light_spectrum * lambert
+                + Kd6 * light_spectrum * lambert
+                + Kd7 * light_spectrum * lambert;
+    }
+
+    //Modelo de Phong
+    if ( object_id == SPHERE_WHITE)
+    {
+        //Solucao utilizada no lab4
+        color = light_spectrum * lambert //Termo difuso (Lambert)
+            + Ka * ambient_light_spectrum   //Fator Ambiente
+            + Ks * light_spectrum * phong_specular_term;
+
+    }
+
+    //Modelo de Phong
+    if ( object_id == SPHERE_BLACK)
     {
         //Solucao utilizada no lab4
         color = Kd8 * light_spectrum * lambert //Termo difuso (Lambert)
             + Ka * ambient_light_spectrum   //Fator Ambiente
-            + Ks * light_spectrum * phong_specular_term;    //
-    }
-
-    //Modelo difuso sem ambiente
-    else if ( object_id == ALIEN )
-    {
-        color = Kd2 * kd3 * light_spectrum * lambert;
-    }
-
-
-    else if ( object_id == SPHERE)
-    {
+            + Ks * light_spectrum * phong_specular_term;
 
     }
+
 
 
 
