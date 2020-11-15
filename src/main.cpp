@@ -121,8 +121,12 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
-//Funcoes auxiliares
+//Funcoes auxiliares - cameras, desenhos, e dentre outras
 void CameraWalk();  //Funcao de movimentacao da free camera
+
+//Funcoes que envolvem elementos do jogo (animacao, colisao, regras etc)
+void anima_alien(glm::vec4 alien_pos);
+
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -137,7 +141,7 @@ struct SceneObject
     glm::vec3    bbox_max;
 };
 
-// Abaixo definimos variáveis globais utilizadas em várias funções do código.
+// Abaixo definimos variáveis globais uti lizadas em várias funções do código.
 
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
 // (map).  Veja dentro da função BuildTrianglesAndAddToVirtualScene() como que são incluídos
@@ -150,6 +154,11 @@ std::stack<glm::mat4>  g_MatrixStack;
 
 //Definicao da camera_position_c fora do laco para computar movimento
 glm::vec4 camera_position_c  = glm::vec4(0.0f,0.0f,-5.0f,1.0f);
+
+//Definicao de variaveis vec4 para ter as coordenadas dos objetos
+glm::vec4 alien_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
+glm::vec4 spherewhite_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
+glm::vec4 player_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
 
 //Variaveis da free camera
 glm::vec4 w;
@@ -206,6 +215,11 @@ int g_SetFreeCamera = 0;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
+
+//Variaveis para salvar as coordenadas de um determinado objeto
+
+
+
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint vertex_shader_id;
@@ -307,6 +321,9 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/Alien_02_S.png"); //TextureImage7
     //Texturas das bolinhas
     LoadTextureImage("../../data/blackball.png");   //TextureImage8
+    //Textura do planeta
+    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage9
+    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage10
 
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
@@ -461,7 +478,8 @@ int main(int argc, char* argv[])
         #define ALIEN  1
         #define SPHERE_WHITE  2
         #define SPHERE_BLACK 3
-        #define BAIANINHO 4
+        #define SPHERE_WORLD 4
+        #define BAIANINHO 5
 
         // Desenhamos o modelo da mesa de sinuca
         model = Matrix_Translate(0.0f,0.0f,0.0f)
@@ -471,8 +489,9 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sinuca");
 
         // Desenhamos o modelo do alien
-        model = Matrix_Translate(3.0f,0.75f,0.0f)
-              * Matrix_Scale(0.01f,0.01f,0.01f);
+        model = Matrix_Translate(3.5f,0.75f,0.0f)
+              * Matrix_Scale(0.01f,0.01f,0.01f)
+              * Matrix_Rotate_Y(-90);
               //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, ALIEN);
@@ -491,6 +510,14 @@ int main(int argc, char* argv[])
                 * Matrix_Scale(0.07f,0.07f,0.07f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE_BLACK);
+        DrawVirtualObject("sphere");
+
+        // Desenhamos uma bolinha para fazer um planeta terra
+        model = Matrix_Translate(1.0f,3.00f,0.0f)
+                * Matrix_Scale(1.0f,1.0f,1.07f)
+                * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, SPHERE_WORLD);
         DrawVirtualObject("sphere");
 
 

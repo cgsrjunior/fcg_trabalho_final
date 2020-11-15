@@ -23,7 +23,8 @@ uniform mat4 projection;
 #define ALIEN   1
 #define SPHERE_WHITE 2
 #define SPHERE_BLACK 3
-#define BAIANINHO 4
+#define SPHERE_WORLD 4
+#define BAIANINHO 5
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -43,6 +44,9 @@ uniform sampler2D TextureImage6;
 uniform sampler2D TextureImage7;
 //Textura para uma bola 8
 uniform sampler2D TextureImage8;
+//Textura para o planeta
+uniform sampler2D TextureImage9;
+uniform sampler2D TextureImage10;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -90,6 +94,48 @@ void main()
     float V = 0.0;
 
     if ( object_id == SPHERE_WHITE || object_id == SPHERE_BLACK)
+    {
+        // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
+        // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
+        // o slides 134-150 do documento Aula_20_Mapeamento_de_Texturas.pdf.
+        // A esfera que define a projeção deve estar centrada na posição
+        // "bbox_center" definida abaixo.
+
+        // Você deve utilizar:
+        //   função 'length( )' : comprimento Euclidiano de um vetor
+        //   função 'atan( , )' : arcotangente. Veja https://en.wikipedia.org/wiki/Atan2.
+        //   função 'asin( )'   : seno inverso.
+        //   constante M_PI
+        //   variável position_model
+
+
+        //Centro da bounding box (variavel c nos slides)
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+
+        //Dado que p' esta calculado, aqui definimos o vetor p
+        vec4 p_vector = position_model - bbox_center;
+
+        float px = p_vector.x;
+        float py = p_vector.y;
+        float pz = p_vector.z;
+
+        float theta = atan(px,pz);
+        float rho = length(p_vector);
+        float phi = asin(py/rho);
+
+        U = (theta+M_PI)/(2*M_PI);
+        V = (phi+M_PI_2)/M_PI;
+
+        // Propriedades espectrais da superfície
+        Kd = vec3(0.02,0.03,0.04); // Refletância difusa
+        Ks = vec3(0.6,0.5,0.5); // Refletância especular
+        Ka = vec3(0.3,0.2,0.2); // Refletância ambiente
+
+        q = 10.0;    //Expoente para o modelo de Phong
+
+
+    }
+    if ( object_id == SPHERE_WORLD)
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -236,6 +282,9 @@ void main()
     vec3 Kd7 = texture(TextureImage7, vec2(U,V)).rgb;
     //Textura para uma bola 8
     vec3 Kd8 = texture(TextureImage8, vec2(U,V)).rgb;
+    //Textura para um planetinha
+    vec3 Kd9 = texture(TextureImage9, vec2(U,V)).rgb;
+    vec3 Kd10 = texture(TextureImage10, vec2(U,V)).rgb;
 
     // Espectro da fonte de iluminação
     vec3 light_spectrum = vec3(1.0,1.0,1.0);
@@ -286,6 +335,13 @@ void main()
         color = Kd8 * light_spectrum * lambert //Termo difuso (Lambert)
             + Ka * ambient_light_spectrum   //Fator Ambiente
             + Ks * light_spectrum * phong_specular_term;
+
+    }
+
+    //Modelo difuso
+    if ( object_id == SPHERE_WORLD)
+    {
+        color = (Kd9 * (lambert + 0.01)) + (Kd10 * (1-(lambert + 0.6)+ 0.01));
 
     }
 
