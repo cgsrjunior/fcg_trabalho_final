@@ -157,7 +157,7 @@ std::map<std::string, SceneObject> g_VirtualScene;
 std::stack<glm::mat4>  g_MatrixStack;
 
 //Definicao da camera_position_c fora do laco para computar movimento
-glm::vec4 camera_position_c  = glm::vec4(0.0f,0.0f,-5.0f,1.0f);
+glm::vec4 camera_position_c  = glm::vec4(0.0f,1.0f,-5.0f,1.0f);
 
 //Definicao de variaveis vec4 para ter as coordenadas dos objetos
 glm::vec4 alien_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
@@ -165,7 +165,9 @@ glm::vec4 spherewhite_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
 //Coordenadas do jogador
 float player_position_x = 0.0f;
 float player_position_y = 0.0f;
+//Rotacoes e constante de movimentacao
 float player_rotation = 0.0f;
+float player_movement = 0.0f;
 
 //Variaveis da free camera
 glm::vec4 w;
@@ -528,8 +530,8 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPHERE_WORLD);
         DrawVirtualObject("sphere");
 
-        // Desenhamos o modelo do alien
-        model = Matrix_Translate(-1.5f + player_position_x ,0.75f, 0.0f + player_position_y)
+        // Desenhamos o modelo do alien - Modelo controlado por WASD
+        model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
               * Matrix_Scale(0.01f,0.01f,0.01f)
               * Matrix_Rotate_Y(player_rotation);
 
@@ -1281,19 +1283,19 @@ void PlayerWalk()
 {
     if (move_up == 1)
     {
-        player_position_y -=speed_up * cos(player_rotation * M_PI / 180);
+        player_position_y -=speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_down == 1)
     {
-        player_position_y += speed_up * cos(player_rotation * M_PI / 180);
+        player_position_y += speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_left == 1)
     {
-        player_position_x -= speed_up * cos(player_rotation * M_PI / 180);
+        player_position_x -= speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_right == 1)
     {
-        player_position_x +=speed_up  * cos(player_rotation * M_PI / 180);
+        player_position_x +=speed_up  * cos(player_movement * M_PI / 180);
     }
 }
 
@@ -1329,18 +1331,22 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
         move_up=1;
+        player_rotation = 179;
     }
     if (key == GLFW_KEY_S && action == GLFW_PRESS)
     {
         move_down=1;
+        player_rotation = 0;
     }
     if (key == GLFW_KEY_A && action == GLFW_PRESS)
     {
          move_left=1;
+         player_rotation = -90;
     }
     if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
          move_right=1;
+         player_rotation = 90;
     }
 
     //Quando o botao parar de ser pressionado
