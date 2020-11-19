@@ -344,8 +344,12 @@ int main(int argc, char* argv[])
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
     ObjModel baianinhomodel("../../data/baianinho2.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
+    ComputeNormals(&baianinhomodel);
+    BuildTrianglesAndAddToVirtualScene(&baianinhomodel);
+
+    ObjModel tacomodel("../../data/taco_sinuca.obj");
+    ComputeNormals(&tacomodel);
+    BuildTrianglesAndAddToVirtualScene(&tacomodel);
 
     if ( argc > 1 )
     {
@@ -369,6 +373,7 @@ int main(int argc, char* argv[])
     glm::mat4 the_projection;
     glm::mat4 the_model;
     glm::mat4 the_view;
+
 
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -413,6 +418,8 @@ int main(int argc, char* argv[])
         //Preciso posicionar essa camera no modelo do player
         if(g_UseFixedCamera == FALSE)
         {
+            //Recebe as coordenadas do centro do modelo do alien
+            camera_position_c = glm::vec4(alien_position_c.x, alien_position_c.y, alien_position_c.z, 1.0f);
             //Recebe as coordenadas da camera livre
             camera_view_vector = glm::vec4(x,y,z,0.0f);
             //Calculo dos vetores w e u para usarmos para computar a free camera
@@ -530,15 +537,35 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPHERE_WORLD);
         DrawVirtualObject("sphere");
 
-        // Desenhamos o modelo do alien - Modelo controlado por WASD
+        // Desenhamos o modelo do alien - Modelo controlado por WASD - Player
         model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
               * Matrix_Scale(0.01f,0.01f,0.01f)
               * Matrix_Rotate_Y(player_rotation);
+
+        //Recebo a posicao do alien     //pos x                     //Altura            //pos y
+        alien_position_c = glm::vec4(-1.75f + player_position_x ,0.75f + 0.45f, 0.0f + player_position_y + 0.15f ,1.0f);
 
               //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, ALIEN);
         DrawVirtualObject("alien");
+
+
+        // Desenhamos o modelo do taco de sinuca - Modelo que deve seguir a free camera
+        // Caso esteja na fixed camera, o taco devera seguir a mao do modelo
+        /*
+        model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
+              * Matrix_Scale(0.01f,0.01f,0.01f)
+              * Matrix_Rotate_Y(player_rotation);
+
+              // Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ALIEN);
+        DrawVirtualObject("alien");
+        */
+
+
+
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -713,6 +740,9 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage5"), 5);
     glUseProgram(0);
 }
 
@@ -1191,6 +1221,14 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         g_CameraTheta -= 0.01f*dx;
         g_CameraPhi   += 0.01f*dy;
 
+        // Atualizamos tambem as rotacoes do modelo 3D conforme os movimentos do cursor do mouse
+        if(g_UseFixedCamera == false)
+        {
+            player_rotation = g_CameraTheta;
+        }
+
+
+
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f/2;
         float phimin = -phimax;
@@ -1258,23 +1296,28 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 }
 
 //Funcao para movimentarmos a free camera
+//Agora movimentacao da camera tbm recebe as coordenadas do modelo para redesenha-lo
 void CameraWalk()
 {
     if (move_up == 1)
     {
         camera_position_c -=speed_up * w;
+        player_position_y +=speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_down == 1)
     {
         camera_position_c += speed_up * w;
+        player_position_y -= speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_left == 1)
     {
         camera_position_c -= speed_up * u;
+        player_position_x += speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_right == 1)
     {
         camera_position_c +=speed_up  * u;
+        player_position_x -=speed_up  * cos(player_movement * M_PI / 180);
     }
 }
 
@@ -1331,22 +1374,38 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
         move_up=1;
-        player_rotation = 179;
+        if(g_UseFixedCamera)
+        {
+            player_rotation = 179;
+        }
+
     }
     if (key == GLFW_KEY_S && action == GLFW_PRESS)
     {
         move_down=1;
-        player_rotation = 0;
+        if(g_UseFixedCamera)
+        {
+            player_rotation = 0;
+        }
+
     }
     if (key == GLFW_KEY_A && action == GLFW_PRESS)
     {
          move_left=1;
-         player_rotation = -90;
+         if(g_UseFixedCamera)
+         {
+             player_rotation = -90;
+         }
+
     }
     if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
          move_right=1;
-         player_rotation = 90;
+         if(g_UseFixedCamera)
+         {
+             player_rotation = 90;
+         }
+
     }
 
     //Quando o botao parar de ser pressionado
