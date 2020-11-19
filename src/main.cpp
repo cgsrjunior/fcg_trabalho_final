@@ -48,6 +48,8 @@
 #include "utils.h"
 #include "matrices.h"
 
+#define M_PI   3.14159265358979323846
+
 // Estrutura que representa um modelo geométrico carregado a partir de um
 // arquivo ".obj". Veja https://en.wikipedia.org/wiki/Wavefront_.obj_file .
 struct ObjModel
@@ -124,8 +126,10 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 //Funcoes auxiliares - cameras, desenhos, e dentre outras
 void CameraWalk();  //Funcao de movimentacao da free camera
 
+void PlayerWalk();
+
 //Funcoes que envolvem elementos do jogo (animacao, colisao, regras etc)
-void anima_alien(glm::vec4 alien_pos);
+void AnimaAlien(glm::vec4 alien_pos);
 
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
@@ -158,7 +162,10 @@ glm::vec4 camera_position_c  = glm::vec4(0.0f,0.0f,-5.0f,1.0f);
 //Definicao de variaveis vec4 para ter as coordenadas dos objetos
 glm::vec4 alien_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
 glm::vec4 spherewhite_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
-glm::vec4 player_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
+//Coordenadas do jogador
+float player_position_x = 0.0f;
+float player_position_y = 0.0f;
+float player_rotation = 0.0f;
 
 //Variaveis da free camera
 glm::vec4 w;
@@ -401,6 +408,7 @@ int main(int argc, char* argv[])
 
 
         //Na primeira passada o programa deve entrar nas definicoes de fixed camera
+        //Preciso posicionar essa camera no modelo do player
         if(g_UseFixedCamera == FALSE)
         {
             //Recebe as coordenadas da camera livre
@@ -428,6 +436,8 @@ int main(int argc, char* argv[])
             //camera_position_c  = glm::vec4(x,y,z,1.0f);
             //Seta o view vector e o camera vector para os valores que serao usados
             camera_view_vector = camera_lookat_l - camera_position_c;
+            PlayerWalk();
+
         }
 
 
@@ -519,9 +529,10 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sphere");
 
         // Desenhamos o modelo do alien
-        model = Matrix_Translate(-1.5f,0.75f,0.0f)
+        model = Matrix_Translate(-1.5f + player_position_x ,0.75f, 0.0f + player_position_y)
               * Matrix_Scale(0.01f,0.01f,0.01f)
-              * Matrix_Rotate_Y(89);
+              * Matrix_Rotate_Y(player_rotation);
+
               //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, ALIEN);
@@ -1264,6 +1275,28 @@ void CameraWalk()
         camera_position_c +=speed_up  * u;
     }
 }
+
+//Funcao para movimentar um modelo em fixed camera com WASD
+void PlayerWalk()
+{
+    if (move_up == 1)
+    {
+        player_position_y -=speed_up * cos(player_rotation * M_PI / 180);
+    }
+    if (move_down == 1)
+    {
+        player_position_y += speed_up * cos(player_rotation * M_PI / 180);
+    }
+    if (move_left == 1)
+    {
+        player_position_x -= speed_up * cos(player_rotation * M_PI / 180);
+    }
+    if (move_right == 1)
+    {
+        player_position_x +=speed_up  * cos(player_rotation * M_PI / 180);
+    }
+}
+
 
 // Definição da função que será chamada sempre que o usuário pressionar alguma
 // tecla do teclado. Veja http://www.glfw.org/docs/latest/input_guide.html#input_key
