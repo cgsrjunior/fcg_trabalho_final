@@ -209,9 +209,9 @@ float g_TorsoPositionY = 0.0f;
 bool g_UsePerspectiveProjection = true;
 
 //Variavel que controla o tipo de camera usada e variavel que controla o set da position_camera
-bool g_UseFreeCamera = false;
+bool g_UseFixedCamera = false;
 //Set free camera tera set por numeros
-int g_SetFreeCamera = 0;
+int g_SetFixedCamera = 0;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
@@ -314,17 +314,12 @@ int main(int argc, char* argv[])
     LoadTextureImage("../../data/Mahogany.jpg"); // TextureImage1
     //Texturas do alien
     LoadTextureImage("../../data/Alien_01_D.png"); //TextureImage2
-    LoadTextureImage("../../data/Alien_01_N.png"); //TextureImage3
-    LoadTextureImage("../../data/Alien_01_S.png"); //TextureImage4
-    LoadTextureImage("../../data/Alien_02_D.png"); //TextureImage5
-    LoadTextureImage("../../data/Alien_02_N.png"); //TextureImage6
-    LoadTextureImage("../../data/Alien_02_S.png"); //TextureImage7
     //Texturas das bolinhas
-    LoadTextureImage("../../data/blackball.png");   //TextureImage8
+    LoadTextureImage("../../data/blackball.png");   //TextureImage3
     //Textura do planeta
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage9
-    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage10
-
+    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage4
+    //Textura do baianinho
+    LoadTextureImage("../../data/Baianinho_texture.jpg");      // TextureImage5
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel pooltablemodel("../../data/sinuca.obj");
@@ -336,6 +331,10 @@ int main(int argc, char* argv[])
     BuildTrianglesAndAddToVirtualScene(&alienmodel);
 
     ObjModel spheremodel("../../data/sphere.obj");
+    ComputeNormals(&spheremodel);
+    BuildTrianglesAndAddToVirtualScene(&spheremodel);
+
+    ObjModel baianinhomodel("../../data/baianinho2.obj");
     ComputeNormals(&spheremodel);
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
 
@@ -395,33 +394,15 @@ int main(int argc, char* argv[])
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        //glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l    = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        //glm::vec4 camera_position_c = glm::vec4(x,y,z,1.0f);; // Ponto "c", centro da câmera
+        glm::vec4 camera_lookat_l   = glm::vec4(0.0f,0.0f,0.0f,1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
         glm::vec4 camera_view_vector; // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector; // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+        glm::vec4 camera_up_vector = glm::vec4(0.0f,1.0f,0.0f,0.0f);; // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
 
         //Na primeira passada o programa deve entrar nas definicoes de fixed camera
-        if(g_UseFreeCamera == FALSE)
+        if(g_UseFixedCamera == FALSE)
         {
-            //Ajusta o postion c para a fixed camera
-            camera_position_c  = glm::vec4(x,y,z,1.0f);
-            //Seta o view vector e o camera vector para os valores que serao usados
-            camera_view_vector = camera_lookat_l - camera_position_c;
-            camera_up_vector   = glm::vec4(0.0f,1.0f,0.0f,0.0f);
-        }
-
-        //Apos a primeira passada, ao apertarmos F, o programa deve fazer uma troca para free camera
-        if(g_UseFreeCamera == TRUE)
-        {
-            //printf("Enter the free camera \n");
-            //Ajusta o position c para free camera
-            if(g_SetFreeCamera == 1)
-            {
-                camera_position_c=glm::vec4(0.0f,0.0f,-5.0f,1.0f);
-                g_SetFreeCamera++;
-            }
-
             //Recebe as coordenadas da camera livre
             camera_view_vector = glm::vec4(x,y,z,0.0f);
             //Calculo dos vetores w e u para usarmos para computar a free camera
@@ -430,6 +411,23 @@ int main(int argc, char* argv[])
             //Up vector da free camera
             camera_up_vector = crossproduct(w,u);
             CameraWalk();
+        }
+
+        //Apos a primeira passada, ao apertarmos F, o programa deve fazer uma troca para free camera
+        if(g_UseFixedCamera == TRUE)
+        {
+            //printf("Enter the free camera \n");
+            //Ajusta o position c para free camera
+            if(g_SetFixedCamera == 1)
+            {
+                //camera_position_c=glm::vec4(x,y,z,1.0f);
+                g_SetFixedCamera++;
+            }
+            camera_position_c=glm::vec4(x,y,z,1.0f);
+            //Ajusta o postion c para a fixed camera
+            //camera_position_c  = glm::vec4(x,y,z,1.0f);
+            //Seta o view vector e o camera vector para os valores que serao usados
+            camera_view_vector = camera_lookat_l - camera_position_c;
         }
 
 
@@ -513,13 +511,21 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sphere");
 
         // Desenhamos uma bolinha para fazer um planeta terra
-        model = Matrix_Translate(1.0f,3.00f,0.0f)
-                * Matrix_Scale(1.0f,1.0f,1.07f)
+        model = Matrix_Translate(1.0f,4.00f,0.0f)
+                //* Matrix_Scale(1.0f,1.0f,1.07f)
                 * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE_WORLD);
         DrawVirtualObject("sphere");
 
+        // Desenhamos o modelo do alien
+        model = Matrix_Translate(-1.5f,0.75f,0.0f)
+              * Matrix_Scale(0.01f,0.01f,0.01f)
+              * Matrix_Rotate_Y(89);
+              //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, ALIEN);
+        DrawVirtualObject("alien");
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -1353,12 +1359,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
     {
-        g_UseFreeCamera = !g_UseFreeCamera;
-        g_SetFreeCamera++;
+        g_UseFixedCamera = !g_UseFixedCamera;
+        g_SetFixedCamera++;
 
-        if(g_SetFreeCamera > 2)
+        if(g_SetFixedCamera > 2)
         {
-            g_SetFreeCamera = 0;
+            g_SetFixedCamera = 0;
         }
     }
 

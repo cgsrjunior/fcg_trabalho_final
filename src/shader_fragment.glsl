@@ -40,13 +40,6 @@ uniform sampler2D TextureImage2;
 uniform sampler2D TextureImage3;
 uniform sampler2D TextureImage4;
 uniform sampler2D TextureImage5;
-uniform sampler2D TextureImage6;
-uniform sampler2D TextureImage7;
-//Textura para uma bola 8
-uniform sampler2D TextureImage8;
-//Textura para o planeta
-uniform sampler2D TextureImage9;
-uniform sampler2D TextureImage10;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec3 color;
@@ -135,7 +128,7 @@ void main()
 
 
     }
-    if ( object_id == SPHERE_WORLD)
+    else if ( object_id == SPHERE_WORLD)
     {
         // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
         // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
@@ -169,11 +162,11 @@ void main()
         V = (phi+M_PI_2)/M_PI;
 
         // Propriedades espectrais da superfície
-        Kd = vec3(0.02,0.03,0.04); // Refletância difusa
-        Ks = vec3(0.6,0.5,0.5); // Refletância especular
+        Kd = vec3(0.01,0.02,0.03); // Refletância difusa
+        Ks = vec3(0.8,0.7,0.7); // Refletância especular
         Ka = vec3(0.3,0.2,0.2); // Refletância ambiente
 
-        q = 10.0;    //Expoente para o modelo de Phong
+        q = 15.0;    //Expoente para o modelo de Phong
 
 
     }
@@ -239,8 +232,6 @@ void main()
         q = 20.0;    //Expoente para o modelo de Phong
     }
 
-    //Aqui vamos setar as paradas do baianinho de maua
-    /*
     else if ( object_id == BAIANINHO )
     {
         // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
@@ -265,9 +256,8 @@ void main()
         V = (position_model.y - miny)/(maxy-miny);
 
         // Propriedades espectrais da superfície
-        Ka = vec3(0.2,0.1,0.1); // Refletância ambiente
+        Ka = vec3(0.4,0.2,0.2); // Refletância ambiente
     }
-    */
 
     // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
     // Textura da mesa de sinuca
@@ -275,16 +265,12 @@ void main()
     vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
     //Texturas do alien
     vec3 Kd2 = texture(TextureImage2, vec2(U,V)).rgb;
+    //Textura da bola preta
     vec3 Kd3 = texture(TextureImage3, vec2(U,V)).rgb;
+    //Texturas do mapa
     vec3 Kd4 = texture(TextureImage4, vec2(U,V)).rgb;
+    //Textura do baianinho
     vec3 Kd5 = texture(TextureImage5, vec2(U,V)).rgb;
-    vec3 Kd6 = texture(TextureImage6, vec2(U,V)).rgb;
-    vec3 Kd7 = texture(TextureImage7, vec2(U,V)).rgb;
-    //Textura para uma bola 8
-    vec3 Kd8 = texture(TextureImage8, vec2(U,V)).rgb;
-    //Textura para um planetinha
-    vec3 Kd9 = texture(TextureImage9, vec2(U,V)).rgb;
-    vec3 Kd10 = texture(TextureImage10, vec2(U,V)).rgb;
 
     // Espectro da fonte de iluminação
     vec3 light_spectrum = vec3(1.0,1.0,1.0);
@@ -311,14 +297,10 @@ void main()
     //Modelo difuso sem iluminacao ambiente
     if ( object_id == ALIEN )
     {
-        color = Kd2 * light_spectrum * lambert + Kd3 * light_spectrum * lambert
-                + Kd4 * light_spectrum * lambert
-                + Kd5 * light_spectrum * lambert
-                + Kd6 * light_spectrum * lambert
-                + Kd7 * light_spectrum * lambert;
+        color = Kd2 * light_spectrum * lambert;
     }
 
-    //Modelo de Phong
+    //Modelo de Phong - sem aplicação de textura pois bolinha branca
     if ( object_id == SPHERE_WHITE)
     {
         //Solucao utilizada no lab4
@@ -332,7 +314,7 @@ void main()
     if ( object_id == SPHERE_BLACK)
     {
         //Solucao utilizada no lab4
-        color = Kd8 * light_spectrum * lambert //Termo difuso (Lambert)
+        color = Kd3 * light_spectrum * lambert //Termo difuso (Lambert)
             + Ka * ambient_light_spectrum   //Fator Ambiente
             + Ks * light_spectrum * phong_specular_term;
 
@@ -341,8 +323,17 @@ void main()
     //Modelo difuso
     if ( object_id == SPHERE_WORLD)
     {
-        color = (Kd9 * (lambert + 0.01)) + (Kd10 * (1-(lambert + 0.6)+ 0.01));
+        //Solucao utilizada no lab4
+        color = Kd4 * light_spectrum * lambert //Termo difuso (Lambert)
+            + Ka * ambient_light_spectrum   //Fator Ambiente
+            + Ks * light_spectrum * phong_specular_term;
+    }
 
+    //Modelo difuso sem iluminacao ambiente
+    if ( object_id == BAIANINHO )
+    {
+        color = Kd5 * light_spectrum * lambert
+                + Ka * ambient_light_spectrum;   //Fator Ambiente
     }
 
 
