@@ -132,6 +132,11 @@ void PlayerWalk();
 void AnimaAlien(glm::vec4 alien_pos);
 
 
+
+
+//AQUI ENCERRA MEU ESCOPO DE FUNCOES
+
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -145,6 +150,13 @@ struct SceneObject
     glm::vec3    bbox_max;
 };
 
+//Variavel usada para a chamada das funcoes de colisao
+bool check_collision = false;
+
+//Funcao para colisao tipo cubo-cubo
+bool CheckCollision(glm::vec4 model_coord, SceneObject two);
+
+
 // Abaixo definimos variáveis globais uti lizadas em várias funções do código.
 
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
@@ -157,7 +169,7 @@ std::map<std::string, SceneObject> g_VirtualScene;
 std::stack<glm::mat4>  g_MatrixStack;
 
 //Definicao da camera_position_c fora do laco para computar movimento
-glm::vec4 camera_position_c  = glm::vec4(0.0f,1.0f,-5.0f,1.0f);
+glm::vec4 camera_position_c  = glm::vec4(0.0f,7.0f,-5.0f,1.0f);
 
 //Definicao de variaveis vec4 para ter as coordenadas dos objetos
 glm::vec4 alien_position_c  = glm::vec4(0.0f,0.0f,0.0f,1.0f);
@@ -351,6 +363,15 @@ int main(int argc, char* argv[])
     ComputeNormals(&tacomodel);
     BuildTrianglesAndAddToVirtualScene(&tacomodel);
 
+    g_VirtualScene["sinuca"].bbox_min.x *= 0.03f;
+    g_VirtualScene["sinuca"].bbox_max.x *= 0.03f;
+
+    g_VirtualScene["sinuca"].bbox_min.y *= 0.03f;
+    g_VirtualScene["sinuca"].bbox_max.y *= 0.03f;
+
+    g_VirtualScene["sinuca"].bbox_min.z *= 0.03f;
+    g_VirtualScene["sinuca"].bbox_max.z *= 0.03f;
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -496,7 +517,7 @@ int main(int argc, char* argv[])
         #define SPHERE_WHITE  2
         #define SPHERE_BLACK 3
         #define SPHERE_WORLD 4
-        #define BAIANINHO 5
+        #define TACO 5
 
         // Desenhamos o modelo da mesa de sinuca
         model = Matrix_Translate(0.0f,0.0f,0.0f)
@@ -506,13 +527,15 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sinuca");
 
         // Desenhamos o modelo do alien
+        /*
         model = Matrix_Translate(3.5f,0.75f,0.0f)
               * Matrix_Scale(0.01f,0.01f,0.01f)
               * Matrix_Rotate_Y(-90);
-              //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
+               Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, ALIEN);
         DrawVirtualObject("alien");
+        */
 
 
         // Desenhamos uma bolinha na mesa de sinuca (bola branca)
@@ -538,31 +561,49 @@ int main(int argc, char* argv[])
         DrawVirtualObject("sphere");
 
         // Desenhamos o modelo do alien - Modelo controlado por WASD - Player
-        model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
+        //So iremos desenhar este modelo caso ele esteja na fixed camera
+        if(g_UseFixedCamera)
+        {
+            model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
               * Matrix_Scale(0.01f,0.01f,0.01f)
               * Matrix_Rotate_Y(player_rotation);
+                            //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, ALIEN);
+            DrawVirtualObject("alien");
 
-        //Recebo a posicao do alien     //pos x                     //Altura            //pos y
-        alien_position_c = glm::vec4(-1.75f + player_position_x ,0.75f + 0.45f, 0.0f + player_position_y + 0.15f ,1.0f);
+            //Lembrar de fazer um desenho do taco de sinuca na mao do alien
+        }
+        else
+        {
+            //Aqui iremos desenhar um taco de sinuca em primeira pessoa
+            model = Matrix_Translate(-1.5f,1.0f,0.0f)
+                    * Matrix_Rotate_Z(30);
 
-              //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, ALIEN);
-        DrawVirtualObject("alien");
+            glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+            glUniform1i(object_id_uniform, TACO);
+            DrawVirtualObject("taco_sinuca");
+        }
 
+        if(!(check_collision))
+        {
+            alien_position_c = glm::vec4(-1.75f + player_position_x ,0.75f + 0.45f, 0.0f + player_position_y + 0.15f ,1.0f);
+        }
+        else
+        {
+            printf("\nColidimos");
+        }
 
-        // Desenhamos o modelo do taco de sinuca - Modelo que deve seguir a free camera
-        // Caso esteja na fixed camera, o taco devera seguir a mao do modelo
-        /*
-        model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
-              * Matrix_Scale(0.01f,0.01f,0.01f)
-              * Matrix_Rotate_Y(player_rotation);
-
-              // Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, ALIEN);
-        DrawVirtualObject("alien");
-        */
+        //Se estivermos em free camera, nao devemos ficar mexendo na free camera
+        if(g_UseFixedCamera)
+        {
+            //Primeiro vemos se o alien nao colidiu com a mesa
+            check_collision = CheckCollision(alien_position_c, g_VirtualScene["sinuca"]);
+        }
+        else
+        {
+            alien_position_c = camera_position_c;
+        }
 
 
 
@@ -1295,6 +1336,9 @@ void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
         g_CameraDistance = verysmallnumber;
 }
 
+
+
+
 //Funcao para movimentarmos a free camera
 //Agora movimentacao da camera tbm recebe as coordenadas do modelo para redesenha-lo
 void CameraWalk()
@@ -1302,22 +1346,22 @@ void CameraWalk()
     if (move_up == 1)
     {
         camera_position_c -=speed_up * w;
-        player_position_y +=speed_up * cos(player_movement * M_PI / 180);
+        player_position_y -=speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_down == 1)
     {
         camera_position_c += speed_up * w;
-        player_position_y -= speed_up * cos(player_movement * M_PI / 180);
+        player_position_y += speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_left == 1)
     {
         camera_position_c -= speed_up * u;
-        player_position_x += speed_up * cos(player_movement * M_PI / 180);
+        player_position_x -= speed_up * cos(player_movement * M_PI / 180);
     }
     if (move_right == 1)
     {
         camera_position_c +=speed_up  * u;
-        player_position_x -=speed_up  * cos(player_movement * M_PI / 180);
+        player_position_x +=speed_up  * cos(player_movement * M_PI / 180);
     }
 }
 
@@ -1341,6 +1385,40 @@ void PlayerWalk()
         player_position_x +=speed_up  * cos(player_movement * M_PI / 180);
     }
 }
+
+
+//AABB - 3d AABB COLISION
+
+//O primeiro objeto vai ser o ponto e o segundo vai ser a caixa
+bool CheckCollision(glm::vec4 model_coord, SceneObject two)
+{
+
+
+    printf("\n Model X %f", model_coord.x);
+    printf("\n Model Y %f", model_coord.y);
+    printf("\n Model Z %f", model_coord.z);
+
+    printf("\n Bound Box X Min %f", two.bbox_min.x);
+    printf("\n Bound Box Y Min %f", two.bbox_min.y);
+    printf("\n Bound Box Z Min %f", two.bbox_min.z);
+
+    printf("\n Bound Box X Max %f", two.bbox_max.x);
+    printf("\n Bound Box Y Max %f", two.bbox_max.y);
+    printf("\n Bound Box Z Max %f", two.bbox_max.z);
+
+    //Verifica colisao em tres dimensoes
+    return (model_coord.x >= two.bbox_min.x && model_coord.x <= two.bbox_max.x) &&
+           (0.5 >= two.bbox_min.y && 0.5 <= two.bbox_max.y) &&
+           (model_coord.z >= two.bbox_min.z && model_coord.z <= two.bbox_max.z);
+}
+
+
+
+
+
+
+
+//AQUI TERMINA AS MINHAS FUNCOES
 
 
 // Definição da função que será chamada sempre que o usuário pressionar alguma
