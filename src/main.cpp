@@ -156,6 +156,8 @@ bool check_collision = false;
 //Funcao para colisao tipo cubo-cubo
 bool CheckCollision(glm::vec4 model_coord, SceneObject two);
 
+//Confere a colisao da bolinha
+bool CheckCollisionBall(glm::vec4 model_coord, SceneObject two);
 
 // Abaixo definimos variáveis globais uti lizadas em várias funções do código.
 
@@ -180,6 +182,31 @@ float player_position_y = 0.0f;
 //Rotacoes e constante de movimentacao
 float player_rotation = 0.0f;
 float player_movement = 0.0f;
+
+//Coordenadas da bolinha branca
+float whiteball_position_x = 0.0f;
+float whiteball_position_y = 0.0f;
+
+//Coordenadas da bolinha preta
+float blackball_position_x = 1.0f;
+float blackball_position_y = 0.0f;
+
+//Constante de movimentacao
+float ball_movement = 0.0f;
+
+//Estrutura para guardar bounding box quando necessario
+struct BoundBox
+{
+    glm::vec3    bbox_min; // Axis-Aligned Bounding Box do objeto
+    glm::vec3    bbox_max;
+};
+
+BoundBox white_sphere, black_sphere;
+
+
+//Se bolinha for clicada com o botao do meio, deve gerar uma animacao para frente
+
+
 
 //Variaveis da free camera
 glm::vec4 w;
@@ -363,6 +390,7 @@ int main(int argc, char* argv[])
     ComputeNormals(&tacomodel);
     BuildTrianglesAndAddToVirtualScene(&tacomodel);
 
+    //Ajuste da bounding box da mesa de sinuca
     g_VirtualScene["sinuca"].bbox_min.x *= 0.03f;
     g_VirtualScene["sinuca"].bbox_max.x *= 0.03f;
 
@@ -371,6 +399,16 @@ int main(int argc, char* argv[])
 
     g_VirtualScene["sinuca"].bbox_min.z *= 0.03f;
     g_VirtualScene["sinuca"].bbox_max.z *= 0.03f;
+
+    //Ajuste da bounding box da mesa de esfera
+    g_VirtualScene["sphere"].bbox_min.x *= 0.07f;
+    g_VirtualScene["sphere"].bbox_max.x *= 0.07f;
+
+    g_VirtualScene["sphere"].bbox_min.y *= 0.07f;
+    g_VirtualScene["sphere"].bbox_max.y *= 0.07f;
+
+    g_VirtualScene["sphere"].bbox_min.z *= 0.07f;
+    g_VirtualScene["sphere"].bbox_max.z *= 0.07f;
 
     if ( argc > 1 )
     {
@@ -539,18 +577,29 @@ int main(int argc, char* argv[])
 
 
         // Desenhamos uma bolinha na mesa de sinuca (bola branca)
-        model = Matrix_Translate(0.0f,0.85f,0.0f)
+        model = Matrix_Translate(whiteball_position_x,0.85f,whiteball_position_y)
                 * Matrix_Scale(0.07f,0.07f,0.07f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE_WHITE);
         DrawVirtualObject("sphere");
 
+        //Salvando a bounding box do desenho no momento em que foi desenhada
+        white_sphere.bbox_min = g_VirtualScene["sphere"].bbox_min;
+        white_sphere.bbox_max = g_VirtualScene["sphere"].bbox_max;
+
+
+
         // Desenhamos uma bolinha na mesa de sinuca (bola preta)
-        model = Matrix_Translate(1.0f,0.85f,0.0f)
+        model = Matrix_Translate(blackball_position_x,0.85f,blackball_position_y)
                 * Matrix_Scale(0.07f,0.07f,0.07f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE_BLACK);
         DrawVirtualObject("sphere");
+
+        //Aqui terei que salvar a bounding box desse desenho nesse exato instante
+        //Salvando a bounding box do desenho no momento em que foi desenhada
+        black_sphere.bbox_min = g_VirtualScene["sphere"].bbox_min;
+        black_sphere.bbox_max = g_VirtualScene["sphere"].bbox_max;
 
         // Desenhamos uma bolinha para fazer um planeta terra
         model = Matrix_Translate(1.0f,4.00f,0.0f)
@@ -1300,8 +1349,8 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_TorsoPositionX += 0.01f*dx;
-        g_TorsoPositionY -= 0.01f*dy;
+        whiteball_position_x += 0.01f*dx;
+        whiteball_position_y -= 0.01f*dy;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1421,6 +1470,31 @@ void PlayerWalk()
 
 //O primeiro objeto vai ser o ponto e o segundo vai ser a caixa
 bool CheckCollision(glm::vec4 model_coord, SceneObject two)
+{
+    //Printfs para poder ver os valores testados
+    /*
+    printf("\n Model X %f", model_coord.x);
+    printf("\n Model Y %f", model_coord.y);
+    printf("\n Model Z %f", model_coord.z);
+
+    printf("\n Bound Box X Min %f", two.bbox_min.x);
+    printf("\n Bound Box Y Min %f", two.bbox_min.y);
+    printf("\n Bound Box Z Min %f", two.bbox_min.z);
+
+    printf("\n Bound Box X Max %f", two.bbox_max.x);
+    printf("\n Bound Box Y Max %f", two.bbox_max.y);
+    printf("\n Bound Box Z Max %f", two.bbox_max.z);
+    */
+
+    //Verifica colisao em tres dimensoes
+    return (model_coord.x >= two.bbox_min.x && model_coord.x <= two.bbox_max.x) &&
+           (0.5 >= two.bbox_min.y && 0.5 <= two.bbox_max.y) &&
+           (model_coord.z >= two.bbox_min.z && model_coord.z <= two.bbox_max.z);
+}
+
+
+//Aqui a ideia seria uma colisao entre as esferas da mesa
+bool CheckCollisionBall(glm::vec4 model_coord, SceneObject two)
 {
     //Printfs para poder ver os valores testados
     /*
