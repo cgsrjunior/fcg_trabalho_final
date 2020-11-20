@@ -223,7 +223,7 @@ float g_ForearmAngleZ = 0.0f;
 float g_ForearmAngleX = 0.0f;
 
 // Variáveis que controlam translação do torso
-float g_TorsoPositionX = 0.0f;
+float g_TorsoPositionX = -1.75f;
 float g_TorsoPositionY = 0.0f;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
@@ -564,7 +564,7 @@ int main(int argc, char* argv[])
         //So iremos desenhar este modelo caso ele esteja na fixed camera
         if(g_UseFixedCamera)
         {
-            model = Matrix_Translate(-1.75f + player_position_x ,0.75f, 0.0f + player_position_y)
+            model = Matrix_Translate(player_position_x, 0.75f, player_position_y)
               * Matrix_Scale(0.01f,0.01f,0.01f)
               * Matrix_Rotate_Y(player_rotation);
                             //* Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f)
@@ -587,11 +587,12 @@ int main(int argc, char* argv[])
 
         if(!(check_collision))
         {
-            alien_position_c = glm::vec4(-1.75f + player_position_x ,0.75f + 0.45f, 0.0f + player_position_y + 0.15f ,1.0f);
+            alien_position_c = glm::vec4(player_position_x, 0.75f, player_position_y, 1.0f);
         }
         else
         {
             printf("\nColidimos");
+            check_collision = false;
         }
 
         //Se estivermos em free camera, nao devemos ficar mexendo na free camera
@@ -1392,8 +1393,8 @@ void PlayerWalk()
 //O primeiro objeto vai ser o ponto e o segundo vai ser a caixa
 bool CheckCollision(glm::vec4 model_coord, SceneObject two)
 {
-
-
+    //Printfs para poder ver os valores testados
+    /*
     printf("\n Model X %f", model_coord.x);
     printf("\n Model Y %f", model_coord.y);
     printf("\n Model Z %f", model_coord.z);
@@ -1405,6 +1406,7 @@ bool CheckCollision(glm::vec4 model_coord, SceneObject two)
     printf("\n Bound Box X Max %f", two.bbox_max.x);
     printf("\n Bound Box Y Max %f", two.bbox_max.y);
     printf("\n Bound Box Z Max %f", two.bbox_max.z);
+    */
 
     //Verifica colisao em tres dimensoes
     return (model_coord.x >= two.bbox_min.x && model_coord.x <= two.bbox_max.x) &&
