@@ -585,21 +585,11 @@ int main(int argc, char* argv[])
             DrawVirtualObject("taco_sinuca");
         }
 
-        if(!(check_collision))
-        {
-            alien_position_c = glm::vec4(player_position_x, 0.75f, player_position_y, 1.0f);
-        }
-        else
-        {
-            printf("\nColidimos");
-            check_collision = false;
-        }
 
-        //Se estivermos em free camera, nao devemos ficar mexendo na free camera
+        //Se estivermos em fixed camera, nao devemos ficar mexendo na free camera
         if(g_UseFixedCamera)
         {
-            //Primeiro vemos se o alien nao colidiu com a mesa
-            check_collision = CheckCollision(alien_position_c, g_VirtualScene["sinuca"]);
+            alien_position_c = glm::vec4(player_position_x, 0.75f, player_position_y, 1.0f);
         }
         else
         {
@@ -1369,21 +1359,60 @@ void CameraWalk()
 //Funcao para movimentar um modelo em fixed camera com WASD
 void PlayerWalk()
 {
+    //Aqui eu tenho as coordenadas atuais do alien
+    glm::vec4 alien_next_position = alien_position_c;
+    bool check_position = false;
+
     if (move_up == 1)
     {
-        player_position_y -=speed_up * cos(player_movement * M_PI / 180);
+        //antes de movimentar eu devo conferir se a posicao nao gera colisao
+        //Recebo a nova posicao pras coordenadas teste
+        alien_next_position.y -=speed_up * cos(player_movement * M_PI / 180);
+        check_position = CheckCollision(alien_next_position,g_VirtualScene["sinuca"]);
+        //Se nao houve colisao, podemos atualizar as coordenadas que serao desenhadas
+        if(!check_position)
+        {
+            player_position_y -=speed_up * cos(player_movement * M_PI / 180);
+        }
+
     }
     if (move_down == 1)
     {
-        player_position_y += speed_up * cos(player_movement * M_PI / 180);
+        //antes de movimentar eu devo conferir se a posicao nao gera colisao
+        //Recebo a nova posicao pras coordenadas teste
+        alien_next_position.y += speed_up * cos(player_movement * M_PI / 180);
+        check_position = CheckCollision(alien_next_position,g_VirtualScene["sinuca"]);
+        //Se nao houve colisao, podemos atualizar as coordenadas que serao desenhadas
+        if(!check_position)
+        {
+            player_position_y += speed_up * cos(player_movement * M_PI / 180);
+        }
+
     }
     if (move_left == 1)
     {
-        player_position_x -= speed_up * cos(player_movement * M_PI / 180);
+        //antes de movimentar eu devo conferir se a posicao nao gera colisao
+        //Recebo a nova posicao pras coordenadas teste
+        alien_next_position.x -= speed_up * cos(player_movement * M_PI / 180);
+        check_position = CheckCollision(alien_next_position,g_VirtualScene["sinuca"]);
+        //Se nao houve colisao, podemos atualizar as coordenadas que serao desenhadas
+        if(!check_position)
+        {
+            player_position_x -= speed_up * cos(player_movement * M_PI / 180);
+        }
+
     }
     if (move_right == 1)
     {
-        player_position_x +=speed_up  * cos(player_movement * M_PI / 180);
+        //antes de movimentar eu devo conferir se a posicao nao gera colisao
+        //Recebo a nova posicao pras coordenadas teste
+        alien_next_position.x +=speed_up  * cos(player_movement * M_PI / 180);
+        check_position = CheckCollision(alien_next_position,g_VirtualScene["sinuca"]);
+        //Se nao houve colisao, podemos atualizar as coordenadas que serao desenhadas
+        if(!check_position)
+        {
+            player_position_x +=speed_up  * cos(player_movement * M_PI / 180);
+        }
     }
 }
 
