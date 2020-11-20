@@ -583,6 +583,9 @@ int main(int argc, char* argv[])
         glUniform1i(object_id_uniform, SPHERE_WHITE);
         DrawVirtualObject("sphere");
 
+        //Guardar o ponto da bolinha
+        spherewhite_position_c = glm::vec4(whiteball_position_x, 0.85f, whiteball_position_y, 1.0f);
+
         //Salvando a bounding box do desenho no momento em que foi desenhada
         white_sphere.bbox_min = g_VirtualScene["sphere"].bbox_min;
         white_sphere.bbox_max = g_VirtualScene["sphere"].bbox_max;
@@ -595,6 +598,8 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE_BLACK);
         DrawVirtualObject("sphere");
+
+
 
         //Aqui terei que salvar a bounding box desse desenho nesse exato instante
         //Salvando a bounding box do desenho no momento em que foi desenhada
@@ -1286,6 +1291,8 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 // cima da janela OpenGL.
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
+    bool its_on_the_table = false;
+    glm::vec4 next_spherewhite_pos = spherewhite_position_c;
     // Abaixo executamos o seguinte: caso o botão esquerdo do mouse esteja
     // pressionado, computamos quanto que o mouse se movimento desde o último
     // instante de tempo, e usamos esta movimentação para atualizar os
@@ -1348,9 +1355,18 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
 
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        whiteball_position_x += 0.01f*dx;
-        whiteball_position_y -= 0.01f*dy;
+        //Checamos se a prox posicao esta dentro da bounding box da mesa
+        next_spherewhite_pos.x += 0.01f*dx;
+        next_spherewhite_pos.y += 0.01f*dx;
+
+        its_on_the_table = CheckCollision(next_spherewhite_pos,g_VirtualScene["sinuca"]);
+        if(its_on_the_table)
+        {
+            // Atualizamos movimentacao da bolinha deslocamentos
+            whiteball_position_x += 0.01f*dx;
+            whiteball_position_y -= 0.01f*dy;
+        }
+
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1632,8 +1648,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_AngleZ = 0.0f;
         g_ForearmAngleX = 0.0f;
         g_ForearmAngleZ = 0.0f;
-        g_TorsoPositionX = 0.0f;
-        g_TorsoPositionY = 0.0f;
+        whiteball_position_x = 0.0f;
+        whiteball_position_y = 0.0f;
     }
 
     //Se o usuario apertar a tecla F, a camera sera alterada para uma free camera
